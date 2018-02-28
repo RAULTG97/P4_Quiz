@@ -147,11 +147,11 @@ exports.playCmd = rl => {
     for(let i=0; i<indices;i++){
         toBeResolved.push(model.getByIndex(i)); //Rellenamos el array a resolver con los quizzes
     }
-    const playOne = () => {
+    const playOne = () => { //Función para ir preguntando todos los quizzes
         if (toBeResolved.length===0) {  //Si no quedan preguntas(se han preguntado todas)--- Fin del juego
             log("No hay nada más que preguntar.");
             log(`Fin del juego. Aciertos: ${score}`);
-            biglog(`${score}`, 'green');
+            biglog(`${score}`, 'magenta');
             rl.prompt();
 
         } else {
@@ -167,7 +167,7 @@ exports.playCmd = rl => {
                     } else {
                         log('INCORRECTO');
                         log(`Fin del juego. Aciertos: ${score}`);
-                        biglog(`${score}`, 'red');
+                        biglog(`${score}`, 'magenta');
                         rl.prompt();
                     }
                 });
