@@ -145,21 +145,21 @@ exports.playCmd = rl => {
 
     let indices = model.count();
     for(let i=0; i<indices;i++){
-        toBeResolved.push(i);
+        toBeResolved.push(model.getByIndex(i)); //Rellenamos el array a resolver con los quizzes
     }
-        const playOne = () => {
-            if (toBeResolved[0]==="undefined") {
-                log("No hay nada más que preguntar.");
-                log(`Fin del juego. Aciertos: ${score}`);
-                biglog(`${score}`, 'green');
-                rl.prompt();
+    const playOne = () => {
+        if (toBeResolved.length===0) {  //Si no quedan preguntas(se han preguntado todas)--- Fin del juego
+            log("No hay nada más que preguntar.");
+            log(`Fin del juego. Aciertos: ${score}`);
+            biglog(`${score}`, 'green');
+            rl.prompt();
 
-            } else {
-                try {
-                let id = Math.trunc(Math.random() * toBeResolved.length);
+        } else {
+            try {
+                let id = Math.trunc(Math.random() * toBeResolved.length); //Obtenemos un indice al azar
+                let quiz = toBeResolved[id];
                 toBeResolved.splice(id,1);
-                let quiz = model.getByIndex(id);
-                rl.question(colorize(`${quiz.question}?`, 'red'), answer => {
+                rl.question(colorize(`${quiz.question}? `, 'red'), answer => { //Pregunta al azar
                     if (answer.trim().toLowerCase() === quiz.answer.toLowerCase()) {
                         score++;
                         log(`CORRECTO - Lleva ${score} aciertos.`);
@@ -171,11 +171,11 @@ exports.playCmd = rl => {
                         rl.prompt();
                     }
                 });
-                }catch(error) {
-                    errorlog(error.message);
-                    rl.prompt();
-                }
+            }catch(error) {
+                errorlog(error.message);
+                rl.prompt();
             }
+        }
     }
     playOne();
 };
