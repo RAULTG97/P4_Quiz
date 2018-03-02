@@ -114,7 +114,7 @@ exports.testCmd = (rl, id) => {
             const quiz = model.getByIndex(id);
 
             rl.question(colorize(`${quiz.question}?`, 'red'), answer => {
-                if (answer.trim().toLowerCase() === quiz.answer.toLowerCase()){
+                if (answer.trim().toLowerCase() === quiz.answer.trim().toLowerCase()){
                     log('Su respuesta es correcta.')
                     biglog('CORRECTA', 'green');
                     rl.prompt();
@@ -160,7 +160,7 @@ exports.playCmd = rl => {
                 let quiz = toBeResolved[id];
                 toBeResolved.splice(id,1);
                 rl.question(colorize(`${quiz.question}? `, 'red'), answer => { //Pregunta al azar
-                    if (answer.trim().toLowerCase() === quiz.answer.toLowerCase()) {
+                    if (answer.trim().toLowerCase() === quiz.answer.trim().toLowerCase()) {
                         score++;
                         log(`CORRECTO - Lleva ${score} aciertos.`);
                         playOne();
