@@ -173,22 +173,20 @@ exports.showCmd = (rl, id) => {
  * @param id Clave del quiz a probar.
  */
 exports.testCmd = (rl, id) => {
-    validateId(id)
-        .then(id => models.quiz.findById(id))
+    validateId(id)   //Validamos el ID
+        .then(id => models.quiz.findById(id)) //Para cada id, cogemos el quiz
         .then(quiz => {
-            if (!quiz) {
+            if (!quiz) {   //Dado un id que no exise, no existirá el quiz
                 throw new Error(`No existe un quiz asociado al id=${id}.`);
             }
-            return makeQuestion(rl, quiz.question)
+            return makeQuestion(rl, ` ${quiz.question} `)
                 .then(a => {
                     if (a.trim().toLowerCase() === quiz.answer.trim().toLowerCase()) {
-                        log('Su respuesta es correcta.')
+                        log('Su respuesta es correcta.');
                         biglog('CORRECTA', 'green');
-                        rl.prompt();
                     } else {
-                        log('Su respuesta es incorrecta.')
+                        log('Su respuesta es incorrecta.');
                         biglog('INCORRECTA', 'red');
-                        rl.prompt();
                     }
                 });
         })
@@ -210,43 +208,51 @@ exports.testCmd = (rl, id) => {
 exports.playCmd = rl => {
     let score = 0;   // Variable para almacenar los aciertos
 
-    let toBeResolved = [];     //Array con los índices que faltan por preguntar
+    let toBeResolved = [];
+    models.quiz.findAll()     //Hacemos una copia de la tabla quiz
+        .then(quizzes => {
+            quizzes.forEach((quiz, id) => {   //Para cada quiz, lo introducimos en su posicion id
+                toBeResolved[id] = quiz;      // en el array con preguntas que faltan por resolver
+            });
+            const playOne = () => { //Función para ir preguntando todos los quizzes
+                if (toBeResolved.length === 0) {  //Si no quedan preguntas(se han preguntado todas)--- Fin del juego
+                    log("No hay nada más que preguntar.");
+                    log(`Fin del juego. Aciertos: ${score}`);
+                    biglog(`${score}`, 'magenta');
+                    rl.prompt();
 
-    let indices = model.count();
-    for(let i=0; i<indices;i++){
-        toBeResolved.push(model.getByIndex(i)); //Rellenamos el array a resolver con los quizzes
-    }
-    const playOne = () => { //Función para ir preguntando todos los quizzes
-        if (toBeResolved.length===0) {  //Si no quedan preguntas(se han preguntado todas)--- Fin del juego
-            log("No hay nada más que preguntar.");
-            log(`Fin del juego. Aciertos: ${score}`);
-            biglog(`${score}`, 'magenta');
+                } else {
+                    let id = Math.trunc(Math.random() * toBeResolved.length); //Obtenemos un indice al azar
+                    let quiz = toBeResolved[id];
+                    toBeResolved.splice(id, 1);
+                    return makeQuestion(rl, ` ${quiz.question} `)
+                        .then(a => {
+                            if (a.trim().toLowerCase() === quiz.answer.trim().toLowerCase()) {
+                                score++;
+                                log(`CORRECTO - Lleva ${score} aciertos.`);
+                                playOne();
+                            } else {
+                                log('INCORRECTO');
+                                log(`Fin del juego. Aciertos: ${score}`);
+                                biglog(`${score}`, 'magenta');
+                            }
+                        })
+                        .catch(error => {
+                            errorlog(error.message);
+                        })
+                        .then(() => {
+                            rl.prompt();
+                        });
+                }
+            };
+            playOne();
+        })
+        .catch(error => {
+            errorlog(error.message);
+        })
+        .then(() => {
             rl.prompt();
-
-        } else {
-            try {
-                let id = Math.trunc(Math.random() * toBeResolved.length); //Obtenemos un indice al azar
-                let quiz = toBeResolved[id];
-                toBeResolved.splice(id,1);
-                rl.question(colorize(`${quiz.question}? `, 'red'), answer => { //Pregunta al azar
-                    if (answer.trim().toLowerCase() === quiz.answer.trim().toLowerCase()) {
-                        score++;
-                        log(`CORRECTO - Lleva ${score} aciertos.`);
-                        playOne();
-                    } else {
-                        log('INCORRECTO');
-                        log(`Fin del juego. Aciertos: ${score}`);
-                        biglog(`${score}`, 'magenta');
-                        rl.prompt();
-                    }
-                });
-            }catch(error) {
-                errorlog(error.message);
-                rl.prompt();
-            }
-        }
-    }
-    playOne();
+        });
 };
 
 
