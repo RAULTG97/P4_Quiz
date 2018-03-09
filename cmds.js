@@ -209,13 +209,11 @@ exports.playCmd = rl => {
     let score = 0;   // Variable para almacenar los aciertos
 
     let toBeResolved = [];
-    models.quiz.findAll()     //Hacemos una copia de la tabla quiz
+    models.quiz.findAll({raw: true})     //Hacemos una copia de la tabla quiz
         .then(quizzes => {
-            quizzes.forEach((quiz, id) => {   //Para cada quiz, lo introducimos en su posicion id
-                toBeResolved[id] = quiz;      // en el array con preguntas que faltan por resolver
-            });
-            const playOne = () => { //Función para ir preguntando todos los quizzes
-                if (toBeResolved.length === 0) {  //Si no quedan preguntas(se han preguntado todas)--- Fin del juego
+            toBeResolved=quizzes;       //Array con los quizzes que faltan por resolver.
+            const playOne = () => {     //Función para ir preguntando todos los quizzes
+                if (toBeResolved.length === 0) {    //Si no quedan preguntas(se han preguntado todas)--- Fin del juego
                     log("No hay nada más que preguntar.");
                     log(`Fin del juego. Aciertos: ${score}`);
                     biglog(`${score}`, 'magenta');
