@@ -333,7 +333,7 @@ exports.editCmd = (socket, rl, id) => {
  *
  * @param rl Objeto readline usado para implementar el CLI
  */
-exports.creditsCmd = rl => {
+exports.creditsCmd = (socket,rl) => {
     log(socket, 'RAUL', 'green');
     rl.prompt();
 };
