@@ -67,7 +67,7 @@ const makeQuestion = (rl, text) => {
  *
  * @param rl Objeto readline usado para implementar el CLI
  */
-exports.addCmd = rl => {
+exports.addCmd = (socket, rl) => {
     makeQuestion(rl, 'Introduzca una pregunta: ')
         .then(q => {
             return makeQuestion(rl, 'Introduzca la respuesta ')
@@ -208,21 +208,18 @@ exports.testCmd = (socket, rl, id) => {
  */
 exports.playCmd = (socket, rl) => {
     let score = 0;   // Variable para almacenar los aciertos
-
     let toBeResolved = [];
-    models.quiz.findAll({raw: true})     //Hacemos una copia de la tabla quiz
-        .then(quizzes => {
-            toBeResolved=quizzes;       //Array con los quizzes que faltan por resolver.
 
-            const playOne = () => {     //Función para ir preguntando todos los quizzes
+    const playOne = () => {     //Función para ir preguntando todos los quizzes
+        return Sequelize.Promise.resolve()
+            .then(() => {
                 if (toBeResolved.length <= 0) {    //Si no quedan preguntas(se han preguntado todas)--- Fin del juego
                     log(socket, "No hay nada más que preguntar.");
                     log(socket, `Fin del juego. Aciertos: ${score}`);
                     biglog(socket, `${score}`, 'magenta');
-                    rl.prompt();
-                    }
-                else
-                    {
+                    return;
+                }
+                else {
                     let id = Math.trunc(Math.random() * toBeResolved.length); //Obtenemos un indice al azar
                     let quiz = toBeResolved[id];
                     toBeResolved.splice(id, 1);
@@ -231,22 +228,23 @@ exports.playCmd = (socket, rl) => {
                             if (a.trim().toLowerCase() === quiz.answer.trim().toLowerCase()) {
                                 score++;
                                 log(socket, `CORRECTO - Lleva ${score} aciertos.`);
-                                playOne();
+                                return playOne();
                             } else {
                                 log(socket, 'INCORRECTO');
                                 log(socket, `Fin del juego. Aciertos: ${score}`);
                                 biglog(socket, `${score}`, 'magenta');
+                                return;
                             }
                         })
-                        .catch(error => {
-                            errorlog(socket, error.message);
-                        })
-                        .then(() => {
-                            rl.prompt();
-                        });
                 }
-            };
-            playOne();
+            })
+    };
+    models.quiz.findAll({raw: true})     //Hacemos una copia de la tabla quiz
+        .then(quizzes => {
+            toBeResolved = quizzes;       //Array con los quizzes que faltan por resolver.
+        })
+        .then(() => {
+            return playOne();
         })
         .catch(error => {
             errorlog(socket, error.message);
@@ -255,6 +253,7 @@ exports.playCmd = (socket, rl) => {
             rl.prompt();
         });
 };
+
 
 
 
